@@ -1,0 +1,12 @@
+﻿@model List<ChatApp.Models.Chats>
+
+@foreach (var c in Model)
+{
+    <div style="margin-bottom:6px;">
+        <strong>@c.From:</strong>
+        @c.Message
+        <small style="color:gray;">
+            (@c.Timestamp.ToString("HH:mm"))
+        </small>
+    </div>
+}

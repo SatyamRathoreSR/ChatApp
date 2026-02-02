@@ -1,0 +1,174 @@
+﻿@model List<ChatApp.Models.Users>
+@{
+    var me = ViewBag.LoggedInUser;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Chatting Application</title>
+
+<style>
+    * { box-sizing: border-box; }
+
+    body {
+        margin: 0;
+        font-family: "Segoe UI", Arial, sans-serif;
+        background: #f4f6f8;
+    }
+
+    h2 {
+        margin: 0;
+        padding: 15px;
+        background: #2c3e50;
+        color: white;
+    }
+
+    .container {
+        display: flex;
+        height: calc(100vh - 60px);
+    }
+
+    /* LEFT PANEL */
+    .left {
+        width: 28%;
+        background: white;
+        border-right: 1px solid #ddd;
+        padding: 10px;
+        overflow-y: auto;
+    }
+
+    .left button {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 8px;
+        border: none;
+        border-radius: 6px;
+        background: #ecf0f1;
+        cursor: pointer;
+        text-align: left;
+        font-size: 14px;
+    }
+
+    .left button:hover {
+        background: #dfe6e9;
+    }
+
+    /* RIGHT PANEL */
+    .right {
+        width: 72%;
+        display: flex;
+        flex-direction: column;
+        padding: 10px;
+    }
+
+    #chatHeader {
+        text-align: center;
+        font-weight: 600;
+        padding: 10px;
+        border-bottom: 1px solid #ccc;
+        background: #fff;
+        border-radius: 6px;
+    }
+
+    .chat-box {
+        flex: 1;
+        margin: 10px 0;
+        padding: 12px;
+        background: white;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        overflow-y: auto;
+        white-space: pre-line;
+    }
+
+    /* MESSAGE INPUT */
+    .chat-input {
+        display: flex;
+        gap: 10px;
+    }
+
+    #msgInput {
+        flex: 1;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        font-size: 14px;
+    }
+
+    .chat-input button {
+        padding: 10px 18px;
+        border: none;
+        border-radius: 6px;
+        background: #2c3e50;
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .chat-input button:hover {
+        background: #1f2f3d;
+    }
+</style>
+</head>
+
+<body>
+
+<h2>Welcome, @me</h2>
+
+<div class="container">
+
+    <!-- USERS LIST -->
+    <div class="left">
+        @foreach (var u in Model)
+        {
+            <button onclick="openChat('@u.Username')">
+                @u.Username
+            </button>
+        }
+    </div>
+
+    <!-- CHAT AREA -->
+    <div class="right">
+        <h3 id="chatHeader">Select a user</h3>
+
+        <div id="chatBox" class="chat-box"></div>
+
+        <div class="chat-input">
+            <input id="msgInput" placeholder="Type a message..." />
+            <button onclick="send()">Send</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+let currentUser = "";
+
+function openChat(user) {
+    currentUser = user;
+    chatHeader.innerText = user;
+
+    fetch(`/Home/GetChats?withUser=${user}`)
+        .then(r => r.text())
+        .then(html => chatBox.innerHTML = html);
+}
+
+function send() {
+    if (!currentUser || msgInput.value.trim() === "") return;
+
+    fetch('/Home/SendMessage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `to=${currentUser}&message=${encodeURIComponent(msgInput.value)}`
+    }).then(() => {
+        msgInput.value = "";
+        openChat(currentUser); // reload messages
+    });
+}
+</script>
+
+
+</body>
+</html>
